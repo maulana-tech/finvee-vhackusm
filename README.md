@@ -1,9 +1,5 @@
 # ⚔️ AEGIS SME — Autonomous Financial Guardian
 
-mkdir -p ~/.kaggle
-cp /path/to/kaggle.json ~/.kaggle/kaggle.json
-chmod 600 ~/.kaggle/kaggle.json
-
 
 **Team Finvee | Varsity Hackathon 2026 | Case Study 2**
 
