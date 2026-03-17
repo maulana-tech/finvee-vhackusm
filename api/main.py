@@ -24,16 +24,22 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-sys.path.insert(0, "/home/ubuntu/aegis-sme")
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 from ml.predictor import predict, get_model_info
-from agents.aegis_agents import AegisOrchestrator, CASE_LOG, NOTIFICATION_LOG, TRANSACTION_HISTORY
+from agents.aegis_agents import (
+    AegisOrchestrator,
+    CASE_LOG,
+    NOTIFICATION_LOG,
+    TRANSACTION_HISTORY,
+)
 
 app = FastAPI(
     title="AEGIS SME API",
     description="Autonomous Financial Guardian for SMEs — Team Finvee, Varsity Hackathon 2026",
-    version="2.0.0-ieee"
+    version="2.0.0-ieee",
 )
 
 app.add_middleware(
@@ -45,6 +51,7 @@ app.add_middleware(
 )
 
 orchestrator = AegisOrchestrator()
+
 
 # ─── Pydantic Models ───
 class Transaction(BaseModel):
@@ -62,10 +69,13 @@ class Transaction(BaseModel):
     amount_vs_avg_ratio: float = 1.0
     location_mismatch: int = 0
 
+
 class BatchRequest(BaseModel):
     transactions: list[Transaction]
 
+
 # ─── Endpoints ───
+
 
 @app.get("/health")
 def health_check():
@@ -84,8 +94,9 @@ def health_check():
         "model_status": model_status,
         "lgb_auc": info.get("lgb_auc", "N/A"),
         "ensemble_auc": info.get("ensemble_auc", "N/A"),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 @app.get("/model-info")
 def model_info():
@@ -94,6 +105,7 @@ def model_info():
         return get_model_info()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/analyze")
 def analyze_transaction(txn: Transaction):
@@ -119,11 +131,12 @@ def analyze_transaction(txn: Transaction):
                 case["monitor_result"]["agent"],
                 case["investigation"]["agent"],
                 case["resolution"]["agent"],
-                case["notification"]["agent"]
-            ]
+                case["notification"]["agent"],
+            ],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/batch-analyze")
 def batch_analyze(req: BatchRequest):
@@ -133,14 +146,17 @@ def batch_analyze(req: BatchRequest):
         txn_dict = txn.model_dump()
         ml_result = predict(txn_dict)
         case = orchestrator.process(txn_dict, ml_result)
-        results.append({
-            "transaction_id": txn.transaction_id,
-            "final_action": case["final_action"],
-            "risk_score": ml_result["ensemble_score"],
-            "risk_level": ml_result["risk_level"],
-            "processing_time_ms": case["processing_time_ms"]
-        })
+        results.append(
+            {
+                "transaction_id": txn.transaction_id,
+                "final_action": case["final_action"],
+                "risk_score": ml_result["ensemble_score"],
+                "risk_level": ml_result["risk_level"],
+                "processing_time_ms": case["processing_time_ms"],
+            }
+        )
     return {"success": True, "count": len(results), "results": results}
+
 
 @app.get("/cases")
 def get_cases(limit: int = 50):
@@ -159,11 +175,12 @@ def get_cases(limit: int = 50):
                 "risk_score": c["ml_result"]["ensemble_score"],
                 "evidence_flags": c["investigation"]["evidence_flags"],
                 "timestamp": c["resolution"]["timestamp"],
-                "processing_time_ms": c["processing_time_ms"]
+                "processing_time_ms": c["processing_time_ms"],
             }
             for c in reversed(recent)
-        ]
+        ],
     }
+
 
 @app.get("/notifications")
 def get_notifications(limit: int = 20):
@@ -172,8 +189,9 @@ def get_notifications(limit: int = 20):
     return {
         "total": len(NOTIFICATION_LOG),
         "returned": len(recent),
-        "notifications": list(reversed(recent))
+        "notifications": list(reversed(recent)),
     }
+
 
 @app.get("/stats")
 def get_stats():
@@ -200,8 +218,9 @@ def get_stats():
         "avg_risk_score": round(sum(scores) / len(scores), 4),
         "high_risk_transactions": high_risk,
         "avg_processing_time_ms": round(avg_time, 1),
-        "total_notifications": len(NOTIFICATION_LOG)
+        "total_notifications": len(NOTIFICATION_LOG),
     }
+
 
 @app.post("/demo/simulate")
 def simulate_stream(n: int = 10):
@@ -217,23 +236,25 @@ def simulate_stream(n: int = 10):
 
         if is_fraud:
             txn_dict = {
-                "transaction_id": f"TXN_DEMO_{int(time.time()*1000)}_{i}",
+                "transaction_id": f"TXN_DEMO_{int(time.time() * 1000)}_{i}",
                 "merchant_id": MERCHANTS[merchant_idx],
                 "merchant_type": MERCHANT_TYPES[merchant_idx],
                 "amount": round(random.uniform(3000000, 15000000), 2),
                 "hour": random.choice([1, 2, 3, 23]),
                 "day_of_week": random.randint(0, 6),
-                "location": random.choice([c for c in CITIES if c != CITIES[merchant_idx]]),
+                "location": random.choice(
+                    [c for c in CITIES if c != CITIES[merchant_idx]]
+                ),
                 "device_id": f"DEV_{random.randint(500, 999):04d}",
                 "is_new_device": 1,
                 "transaction_count_1h": random.randint(1, 3),
                 "transaction_count_24h": random.randint(3, 10),
                 "amount_vs_avg_ratio": round(random.uniform(8, 20), 2),
-                "location_mismatch": 1
+                "location_mismatch": 1,
             }
         else:
             txn_dict = {
-                "transaction_id": f"TXN_DEMO_{int(time.time()*1000)}_{i}",
+                "transaction_id": f"TXN_DEMO_{int(time.time() * 1000)}_{i}",
                 "merchant_id": MERCHANTS[merchant_idx],
                 "merchant_type": MERCHANT_TYPES[merchant_idx],
                 "amount": round(random.uniform(50000, 800000), 2),
@@ -245,20 +266,22 @@ def simulate_stream(n: int = 10):
                 "transaction_count_1h": random.randint(1, 5),
                 "transaction_count_24h": random.randint(5, 30),
                 "amount_vs_avg_ratio": round(random.uniform(0.5, 2.5), 2),
-                "location_mismatch": 0
+                "location_mismatch": 0,
             }
 
         ml_result = predict(txn_dict)
         case = orchestrator.process(txn_dict, ml_result)
-        results.append({
-            "transaction_id": txn_dict["transaction_id"],
-            "merchant_id": txn_dict["merchant_id"],
-            "amount": txn_dict["amount"],
-            "final_action": case["final_action"],
-            "risk_score": ml_result["ensemble_score"],
-            "risk_level": ml_result["risk_level"],
-            "notification": case["notification"]["message"][:100] + "..."
-        })
+        results.append(
+            {
+                "transaction_id": txn_dict["transaction_id"],
+                "merchant_id": txn_dict["merchant_id"],
+                "amount": txn_dict["amount"],
+                "final_action": case["final_action"],
+                "risk_score": ml_result["ensemble_score"],
+                "risk_level": ml_result["risk_level"],
+                "notification": case["notification"]["message"][:100] + "...",
+            }
+        )
 
     return {
         "success": True,
@@ -268,9 +291,11 @@ def simulate_stream(n: int = 10):
             "blocked": sum(1 for r in results if r["final_action"] == "BLOCK"),
             "step_up": sum(1 for r in results if r["final_action"] == "STEP_UP_AUTH"),
             "approved": sum(1 for r in results if r["final_action"] == "APPROVE"),
-        }
+        },
     }
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
