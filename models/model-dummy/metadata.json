@@ -1,0 +1,42 @@
+{
+  "features": [
+    "hour",
+    "day_of_week",
+    "amount",
+    "is_new_device",
+    "transaction_count_1h",
+    "transaction_count_24h",
+    "amount_vs_avg_ratio",
+    "location_mismatch",
+    "merchant_type_enc",
+    "location_enc"
+  ],
+  "ae_threshold": 0.24363793408717727,
+  "lgb_auc": 1.0,
+  "ae_auc": 1.0,
+  "ensemble_auc": 1.0,
+  "decision_thresholds": {
+    "block": 0.75,
+    "step_up": 0.45,
+    "approve": 0.0
+  },
+  "lgb_weight": 0.65,
+  "ae_weight": 0.35,
+  "merchant_types": [
+    "beauty",
+    "food",
+    "grocery",
+    "retail",
+    "service"
+  ],
+  "locations": [
+    "Bandung",
+    "Jakarta",
+    "Makassar",
+    "Medan",
+    "Palembang",
+    "Semarang",
+    "Solo",
+    "Surabaya"
+  ]
+}
