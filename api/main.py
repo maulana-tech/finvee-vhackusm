@@ -27,13 +27,13 @@ from pydantic import BaseModel
 sys.path.insert(0, "/home/ubuntu/aegis-sme")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-from ml.predictor import predict
+from ml.predictor import predict, get_model_info
 from agents.aegis_agents import AegisOrchestrator, CASE_LOG, NOTIFICATION_LOG, TRANSACTION_HISTORY
 
 app = FastAPI(
     title="AEGIS SME API",
     description="Autonomous Financial Guardian for SMEs — Team Finvee, Varsity Hackathon 2026",
-    version="1.0.0"
+    version="2.0.0-ieee"
 )
 
 app.add_middleware(
@@ -69,13 +69,31 @@ class BatchRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
+    try:
+        info = get_model_info()
+        model_status = "loaded"
+    except Exception:
+        info = {}
+        model_status = "not_loaded"
     return {
         "status": "healthy",
         "service": "AEGIS SME",
         "team": "Finvee",
-        "version": "1.0.0",
+        "version": "2.0.0-ieee",
+        "model_version": info.get("model_version", "IEEE-CIS v1"),
+        "model_status": model_status,
+        "lgb_auc": info.get("lgb_auc", "N/A"),
+        "ensemble_auc": info.get("ensemble_auc", "N/A"),
         "timestamp": datetime.now().isoformat()
     }
+
+@app.get("/model-info")
+def model_info():
+    """Get detailed model metadata and performance metrics."""
+    try:
+        return get_model_info()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze")
 def analyze_transaction(txn: Transaction):
