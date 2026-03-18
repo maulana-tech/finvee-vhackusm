@@ -15,6 +15,7 @@ import os
 import json
 import time
 import random
+import streamlit as st
 from datetime import datetime
 from typing import Any
 from dotenv import load_dotenv
@@ -24,7 +25,12 @@ load_dotenv()
 import dashscope
 from dashscope import Generation
 
-dashscope.api_key = os.getenv("DASHSCOPE_API_KEY", "your-api-key-here")
+# ─── API Key Setup ────────────────────────────────────────────────────────────
+# Try Streamlit Secrets first (for deployment), then OS environment (local)
+if "DASHSCOPE_API_KEY" in st.secrets:
+    dashscope.api_key = st.secrets["DASHSCOPE_API_KEY"]
+else:
+    dashscope.api_key = os.getenv("DASHSCOPE_API_KEY", "your-api-key-here")
 
 
 def call_qwen(prompt: str, max_tokens: int = 150, temperature: float = 0.3) -> str:
@@ -367,9 +373,13 @@ Bukti Investigasi:
 Berikan reasoning singkat dalam Bahasa Indonesia yang profesional."""
 
         try:
-            return call_qwen(prompt, max_tokens=150, temperature=0.3)
-        except Exception as e:
-            return f"Keputusan {action} diambil berdasarkan analisis risiko ensemble dengan confidence {investigation['fraud_confidence']:.0%}."
+            res = call_qwen(prompt, max_tokens=150, temperature=0.3)
+            if res.startswith("Error:"):
+                raise ValueError(res)
+            return res
+        except Exception:
+            # Better fallback message
+            return f"Keputusan {action} diambil berdasarkan analisis risiko ensemble (skor: {ml_result['ensemble_score']:.2f}) dengan tingkat kepercayaan {investigation['fraud_confidence']:.0%}."
 
 
 class CommunicatorAgent:
@@ -442,8 +452,11 @@ Syarat notifikasi:
 5. Gunakan format pesan WhatsApp (tidak perlu salam panjang)"""
 
         try:
-            return call_qwen(prompt, max_tokens=120, temperature=0.4)
-        except Exception as e:
+            res = call_qwen(prompt, max_tokens=120, temperature=0.4)
+            if res.startswith("Error:"):
+                raise ValueError(res)
+            return res
+        except Exception:
             if action == "BLOCK":
                 return f"⚠️ {owner_name}, transaksi Rp {amount:,.0f} dari {location} DIBLOKIR karena terdeteksi mencurigakan. ID: {txn_id}. Hubungi support jika ini transaksi Anda."
             elif action == "STEP_UP_AUTH":
