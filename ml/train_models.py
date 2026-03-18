@@ -25,7 +25,11 @@ from tensorflow.keras import layers
 import warnings
 warnings.filterwarnings('ignore')
 
-os.makedirs("/home/ubuntu/aegis-sme/models", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+DATA_FILE = os.path.join(BASE_DIR, "data", "transactions.csv")
+
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 # ─────────────────────────────────────────────
 # 1. LOAD & FEATURE ENGINEERING
@@ -35,7 +39,7 @@ print("  AEGIS SME — ML Core Engine Training")
 print("  Team Finvee | Varsity Hackathon 2026")
 print("=" * 60)
 
-df = pd.read_csv("/home/ubuntu/aegis-sme/data/transactions.csv")
+df = pd.read_csv(DATA_FILE)
 print(f"\n[DATA] Loaded {len(df)} transactions | Fraud rate: {df['is_fraud'].mean():.2%}")
 
 # Encode categoricals
@@ -212,16 +216,16 @@ print(classification_report(y_test, ensemble_pred, target_names=['Normal', 'Frau
 print("\n[SAVE] Saving model artifacts...")
 
 # Save LightGBM
-with open("/home/ubuntu/aegis-sme/models/lgb_model.pkl", "wb") as f:
+with open(os.path.join(MODEL_DIR, "lgb_model.pkl"), "wb") as f:
     pickle.dump(lgb_model, f)
 
 # Save Autoencoder
-autoencoder.save("/home/ubuntu/aegis-sme/models/autoencoder.keras")
+autoencoder.save(os.path.join(MODEL_DIR, "autoencoder.keras"))
 
 # Save Scaler & Encoders
-with open("/home/ubuntu/aegis-sme/models/scaler.pkl", "wb") as f:
+with open(os.path.join(MODEL_DIR, "scaler.pkl"), "wb") as f:
     pickle.dump(scaler, f)
-with open("/home/ubuntu/aegis-sme/models/label_encoders.pkl", "wb") as f:
+with open(os.path.join(MODEL_DIR, "label_encoders.pkl"), "wb") as f:
     pickle.dump({'merchant_type': le_merchant_type, 'location': le_location}, f)
 
 # Save metadata
@@ -237,7 +241,7 @@ metadata = {
     "merchant_types": list(le_merchant_type.classes_),
     "locations": list(le_location.classes_)
 }
-with open("/home/ubuntu/aegis-sme/models/metadata.json", "w") as f:
+with open(os.path.join(MODEL_DIR, "metadata.json"), "w") as f:
     json.dump(metadata, f, indent=2)
 
 print("  [OK] lgb_model.pkl")

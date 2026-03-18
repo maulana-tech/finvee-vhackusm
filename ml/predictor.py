@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_DIR   = os.path.join(BASE_DIR, "models_ieee")
+MODEL_DIR   = os.path.join(BASE_DIR, "models")
 
 LGB_PATH    = os.path.join(MODEL_DIR, "lgb_model_ieee.pkl")
 AE_PATH     = os.path.join(MODEL_DIR, "autoencoder_ieee.keras")

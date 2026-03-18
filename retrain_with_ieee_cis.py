@@ -49,7 +49,7 @@ tf.get_logger().setLevel('ERROR')
 # 0. SETUP & CONFIGURATION
 # ─────────────────────────────────────────────
 DATA_PATH   = os.path.join(os.path.dirname(__file__), "data", "ieee-cis")
-MODEL_PATH  = os.path.join(os.path.dirname(__file__), "models_ieee")
+MODEL_PATH  = os.path.join(os.path.dirname(__file__), "models")
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "output")
 SUBSAMPLE_FRAC = 0.25   # 0.25 = 25% of data (fast). Set to 1.0 for full dataset.
 
