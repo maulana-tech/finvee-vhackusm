@@ -3,7 +3,7 @@ name = "aegis-sme"
 version = "1.0.0"
 description = "AEGIS SME — Autonomous Financial Guardian for SMEs | Team Finvee | Varsity Hackathon 2026"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.12"
 authors = [
     { name = "Team Finvee" }
 ]
