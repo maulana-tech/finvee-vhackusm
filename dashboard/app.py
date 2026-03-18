@@ -1206,8 +1206,8 @@ with tab5:
                 [
                     {
                         "id": c["case_id"],
-                        "score": c["risk_score"],
-                        "action": c["final_action"],
+                        "score": c.get("ml_result", {}).get("ensemble_score", 0.0),
+                        "action": c.get("final_action", "APPROVE"),
                     }
                     for c in cases[-15:]
                 ]
@@ -1254,7 +1254,7 @@ with tab6:
                 f"""
             <div style='background:#1a1d2e; border:1px solid {color}; border-radius:12px; padding:20px; margin-bottom:20px;'>
                 <h3 style='color:{color}; margin:0'>{action_badge(action)} {action}</h3>
-                <p style='color:#666; margin:4px 0'>Case: {sel_case["case_id"]} | Score: {sel_case["risk_score"]:.4f}</p>
+                <p style='color:#666; margin:4px 0'>Case: {sel_case["case_id"]} | Score: {sel_case.get("ml_result", {}).get("ensemble_score", 0.0):.4f}</p>
             </div>""",
                 unsafe_allow_html=True,
             )
