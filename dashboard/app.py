@@ -1167,8 +1167,8 @@ with tab5:
         st.info("ℹ️ Belum ada transaksi diproses. Jalankan Demo Simulation di sidebar.")
     else:
         cases = st.session_state.cases
-        actions = [c["final_action"] for c in cases]
-        scores = [c["risk_score"] for c in cases]
+        actions = [c.get("final_action", "APPROVE") for c in cases]
+        scores = [c.get("ml_result", {}).get("ensemble_score", 0.0) for c in cases]
         blocked = actions.count("BLOCK")
         step_up = actions.count("STEP_UP_AUTH")
         approved = actions.count("APPROVE")
