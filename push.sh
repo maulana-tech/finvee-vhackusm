@@ -97,8 +97,15 @@ done < <(git status --short)
 
 # ── Push ─────────────────────────────────────────────────────────────────────
 echo ""
-if [ "$COUNT" -gt 0 ]; then
-    echo "📤 Pushing $COUNT commit(s) to origin/$BRANCH..."
+
+# Check if there are local commits to push
+LOCAL_AHEAD=$(git rev-list --count origin/"$BRANCH".."$BRANCH" 2>/dev/null || echo "0")
+
+if [ "$COUNT" -gt 0 ] || [ "$LOCAL_AHEAD" -gt 0 ]; then
+    if [ "$LOCAL_AHEAD" -gt 0 ]; then
+        echo "📤 Local branch is ahead by $LOCAL_AHEAD commit(s)."
+    fi
+    echo "📤 Pushing to origin/$BRANCH..."
     if git push origin "$BRANCH"; then
         echo "=========================================="
         echo "✅ Done! $COUNT commit(s) pushed."
